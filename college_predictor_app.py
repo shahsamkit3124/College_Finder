@@ -83,14 +83,12 @@ mode = st.sidebar.radio("Navigation", ["College Finder", "Top Universities"])
 
 if mode == "Top Universities":
     st.header("📊 Top Universities & Admission Weights")
-    # allow multiple with All option
     options = ["All"] + country_list
     selected_countries = st.multiselect(
         "Filter by country (multiple):", options, default=["All"]
     )
     pct_df = (weights_df * 100).round(0).astype(int).astype(str) + "%"
 
-    # interpret selection
     if "All" in selected_countries or set(selected_countries) == set(country_list):
         st.subheader("Admission Weightage by Country")
         st.dataframe(pct_df, use_container_width=True)
@@ -139,12 +137,13 @@ else:
     )
 
     if st.button("🔍 Find My Colleges"):
+        # Compute component scores
         acad = 0.65 * ((c10 + c12) / 2 / 100) + 0.25 * (sat / 1600) + 0.10 * (avg_apt / 100)
         eca_s = eca / 3
-        cc_s  = cc  / 3
+        cc_s  = cc / 3
         int_s = 1.0 if intern else 0.0
-        cs_s  = 1.0 if serv   else 0.0
-        r_s   = 1.0 if res    else 0.0
+        cs_s  = 1.0 if serv else 0.0
+        r_s   = 1.0 if res else 0.0
         ps    = 0.10*eca_s + 0.20*cc_s + 0.25*int_s + 0.20*cs_s + 0.25*r_s
         lor   = 0.5*acad + 0.5*ps
         iv    = (eca_s + cc_s + int_s + cs_s + r_s) / 5
@@ -156,7 +155,16 @@ else:
             "Interview": iv
         }
 
-        # determine df subset
+        # Display user profile scores
+        profile_df = pd.DataFrame.from_dict(
+            {k: round(v*100,2) for k,v in profile.items()},
+            orient='index',
+            columns=['Your Score (%)']
+        )
+        st.subheader("📝 Your Profile Scores")
+        st.table(profile_df)
+
+        # Determine data subset
         if "All" in pref_countries or set(pref_countries) == set(country_list):
             df = all_df
         else:
@@ -165,6 +173,7 @@ else:
         results = compute_fit_scores(df, profile)
         top18   = results.head(18)
 
+        # Display Top-18 in three tiers
         tiers = [
             ("🎯 Ambitious Universities", top18.iloc[:6],   "#E74C3C"),
             ("🏹 Target Universities",    top18.iloc[6:12], "#E67E22"),
