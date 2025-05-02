@@ -3,7 +3,7 @@ import pandas as pd
 
 # --- Page Configuration ---
 st.set_page_config(
-    page_title="Concept Simplified: College Dashboard",
+    page_title="College Finder: College Dashboard",
     layout='wide',
     initial_sidebar_state='expanded'
 )
