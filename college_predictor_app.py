@@ -4,7 +4,7 @@ import pandas as pd
 # ─────────────────────────────────────────────
 # Page config MUST be first Streamlit call
 # ─────────────────────────────────────────────
-st.set_page_config(page_title="YOCKET STUDY ABROAD | Study‑Abroad University Finder",
+st.set_page_config(page_title="CONCEPT SIMPLIFIED | Study‑Abroad University Finder",
                    layout="wide", page_icon="🎓")
 
 # ─────────────────────────────────────────────
@@ -49,7 +49,7 @@ body{background:#f5f6f7;color:#212121;font-family:"Segoe UI",sans-serif;}
 
 st.markdown("""
 <div style="text-align:center">
-  <div class="hero-title">YOCKET STUDY ABROAD 🎓</div>
+  <div class="hero-title">CONCEPT SIMPLIFIED 🎓</div>
   <div class="hero-sub">Study‑Abroad University Finder 2025</div>
 </div>
 <div class="hero-divider"></div>
@@ -124,7 +124,7 @@ with left:
 
     st.subheader("📘 AP Tests")
     num_ap    = st.number_input("APs (0–5)",0,5,step=1)
-    ap_scores = [st.number_input(f"AP{i+1} (0–5)",0,5,step=1) for i in range(int(num_ap))]
+    ap_scores = [st.number_input(f"AP{i+1} (0–5)",0.0,5.0,step=0.1) for i in range(int(num_ap))]
     avg_ap    = sum(ap_scores)/(num_ap*5) if num_ap>0 else 0.0
 
 with right:
@@ -207,27 +207,31 @@ if st.button("🔍 Find My Universities"):
     st.dataframe(gap_view, use_container_width=True)
 
     # ---------- Ambitious / Target / Safe lists ----------
-    # Determine the university A (least positive gap > 0)
+    # Find anchor A = university with the **smallest positive** gap.
     pos_mask = gap_view["Gap %"] > 0
     if pos_mask.any():
-        A_gap = gap_view[pos_mask]["Gap %"].min()
-        A_idx = gap_view[(gap_view["Gap %"] == A_gap) & pos_mask].index[0]
+        # idxmin gives the index of minimum value among positives
+        A_idx = gap_view[pos_mask]["Gap %"].idxmin()
     else:
-        # No positive gaps – take the first zero / smallest absolute gap as A
+        # All gaps ≤ 0 → take the university with gap closest to zero
         A_idx = gap_view["Gap %"].abs().idxmin()
-        A_gap = gap_view.loc[A_idx, "Gap %"]
 
-    # Build category slices (ensure bounds)
-    ambitious_start = max(0, A_idx - 12)
-    ambitious_list = gap_view.iloc[ambitious_start:A_idx]
+    # ---------------- Category slices ----------------
+    # Target ➜ A plus 5 above (total 6)
+    target_start = max(0, A_idx - 5)
+    target_end   = A_idx + 1           # exclusive
+    target_list  = gap_view.iloc[target_start:target_end]
 
-    target_end = A_idx - 6  # includes A + 5 below
-    target_list = gap_view.iloc[A_idx:target_end]
+    # Ambitious ➜ 6 above Target block
+    ambitious_start = max(0, target_start - 6)
+    ambitious_list  = gap_view.iloc[ambitious_start:target_start]
 
-    safe_end = target_end + 6
-    safe_list = gap_view.iloc[target_end:safe_end]
+    # Safe ➜ 6 below A
+    safe_start = A_idx + 1
+    safe_end   = safe_start + 6
+    safe_list  = gap_view.iloc[safe_start:safe_end]
 
-    # Tabs UI
+    # ---------------- Display ----------------
     tabs = st.tabs(["🚀 Ambitious", "🎯 Target", "🛡️ Safe"])
     with tabs[0]:
         st.markdown("#### Universities that will stretch your profile")
@@ -238,6 +242,3 @@ if st.button("🔍 Find My Universities"):
     with tabs[2]:
         st.markdown("#### Safer admits consistent with your profile")
         st.dataframe(safe_list.reset_index(drop=True), use_container_width=True)
-else:
-    st.info("Enter your profile details and click the button to see personalised recommendations.")
-
