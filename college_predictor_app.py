@@ -218,10 +218,10 @@ if st.button("🔍 Find My Universities"):
         A_gap = gap_view.loc[A_idx, "Gap %"]
 
     # Build category slices (ensure bounds)
-    ambitious_start = max(0, A_idx - 6)
+    ambitious_start = max(0, A_idx - 12)
     ambitious_list = gap_view.iloc[ambitious_start:A_idx]
 
-    target_end = A_idx + 6  # includes A + 5 below
+    target_end = A_idx - 6  # includes A + 5 below
     target_list = gap_view.iloc[A_idx:target_end]
 
     safe_end = target_end + 6
